@@ -1,0 +1,325 @@
+---
+title: "Temnos2022Analysis"
+author: "Anonymous"
+date: "2023-03-10"
+output: html_document
+---
+### Required Packages
+
+```{r}
+library(lme4)
+library(nlme)
+library(car)
+library(ggplot2)
+library(plyr)
+library(dplyr)
+library(MASS)
+library(factoextra)
+library(performance)
+library(emmeans)
+library(devtools)
+
+ devtools::install_github("psyteachr/introdataviz")
+
+```
+
+### **Data**
+
+```{r}
+datastore <- read.csv("~/Temnos2022Venom/dissectiondataset.csv")
+
+data<-na.omit(datastore)
+
+summarydata<-read.csv("~/Temnos2022Venom/summaryraiddata2022.csv")
+```
+
+# Variables
+
+### List:
+
+Data set has both workers and queens. Here are the variables in the dataset:
+
+**Date.Dissected**: Date ant was dissected MM/DD/YY.
+
+**Date.Frozen:** Date ant was frozen for dissection. This is approximately 2 weeks after raid trial ended MM/DD/YY.
+
+**Date.Frozen:** Date colony was collected MM/DD/YY.
+
+**Collection.Site:** Site at which nest containing ant was collected.
+
+**Nest:** Number identifier for nest.
+
+**Pair.Group:** Number identifier for pair group. Each colony collected in the field was divided between 2 nests as a matched pair. Nests with the same Pair group are genetically related (came from the same colony) but one nest in each pair experienced a raiding trial, and one did not.
+
+**Raided:** Whether or not the nest was raided. Y means yes, N means no.
+
+**Worker.Queen** : Whether the dissected ant was a worker or a queen
+
+**Behavior.Code:** If Worker.Queen==" Worker", this is N for nurse, F for forager, or X for unclassified. If Worker.Queen == "Queen", this is AQ for alate queen or DQ for dealate queen.
+
+**Ant** : Ant number (identifier)
+
+**Webers.Length.mm** : Weber's length in mm
+
+**Venom.Sac.Length.mm** : Length of venom sac in mm
+
+**Venom.Sac.Width.mm** : Width of venom sac in mm
+
+**Final.Worker.Count** : The number of workers in the nest on the day it was censused/frozen.
+
+**Final.Queen.Count.Dealate** : The number of queens without wings in the nest on the day it was censused/frozen.
+
+**Final.Pupae.Count** : The number of pupae in the nest on the day it was censused/frozen.
+
+**Final.Larvae.Count** : The number of larvae in the nest on the day it was censused/frozen.
+
+**Final.Egg.Count** : The approximate number of eggs in the nest on the day it was censused/frozen.
+
+**Final.Queen.Count.Alate** : The number of winged queens in the nest on the day it was censused/frozen.
+
+**Final.Male.Count**: The number of males in the nest on the day it was censused/frozen.
+
+### Add and mutate:
+
+In this chunk, I add a few new variables to the dataset that can be calculated from the initial variables. I also make sure the date is in the correct format. The most important variable created here is **Venom.Volume**, which is calculated with the formula Venom.Volume $=\frac{\pi}{6} \times(L \times W^2)$ for each venom sac. I also create a dataset that is only workers (subset of dataset)
+
+```{r}
+
+data$Raided<-as.factor(data$Raided)
+data$Date.Dissected <- as.Date((data$Date.Dissected), format = "%m/%d/%y")
+data$Date.Frozen <- as.Date((data$Date.Frozen), format = "%m/%d/%y")
+data$Date.Collected <- as.Date((data$Date.Collected), format = "%m/%d/%y")
+
+
+
+#In R, first day is automatically Jan 1, 1970. This means that when you put a fixed effect in date format in a model, the results become super difficule to interpret. Therefore we must create a new date variable to include in the model to make results more interpretable. To do this I first convert Frozen date to a numeric, where day 1 is the first day I froze ant nests, August 24, 2022 (since first day in R is 1970 I convert to a numeric and then subtract every day before that, which is 19226 days)
+data$Day.Frozen<-as.numeric(data$Date.Frozen)-19226
+
+
+
+data$Final.Brood=data$Final.Larvae.Count+data$Final.Pupae.Count
+data$Final.Brood.Worker.Ratio=data$Final.Brood/data$Final.Worker.Count
+
+#Scale variables to make results more interpretable based on summary data. Meaning because every ant within a colony has the same final worker count and final pupae count, we need to scale based on the colony level and then give those numbers to the individual level dataset
+meanworkers<-mean(summarydata$Final.Worker.Count)
+SDworkers<-sd(summarydata$Final.Worker.Count)
+data$Worker.Count.Scaled<-(data$Final.Worker.Count-meanworkers)/SDworkers
+meanpupae<-mean(summarydata$Final.Pupae.Count)
+SDpupae<-sd(summarydata$Final.Pupae.Count)
+data$Pupae.Count.Scaled<-(data$Final.Pupae.Count-meanpupae)/SDpupae
+meanlarvae<-mean(summarydata$Final.Larvae.Count)
+SDlarvae<-sd(summarydata$Final.Larvae.Count)
+data$Larvae.Count.Scaled<-(data$Final.Larvae.Count-meanlarvae)/SDlarvae
+data$Collection.Site<-as.factor(data$Collection.Site)
+
+
+#Create a variable for venom volume, which is an ellipsoid using venom sac length and width. Since both length and width are measured in mm, this volume is in mm^3, which is 1:1 with microliters. For the purposes of graphing and modeling this problem, we will multiply by 1000 to convert to nanoliters
+data$Venom.Volume<-(pi/6)*data$Venom.Sac.Length.mm*data$Venom.Sac.Width.mm^2*1000
+
+
+
+
+
+
+#Create a dataset for just workers
+workerdata<-subset(data,Worker.Queen=="Worker")
+queendata<-subset(data,Worker.Queen=="Queen")
+```
+
+# Venom Volume by raided
+
+## **Visualizing standardized venom by nest and by whether or not nest was raided**
+
+```{r}
+
+violinbynest<-ggplot(data, aes(x=as.factor(Nest), y=Venom.Volume))+geom_violin(aes(color=Raided)) + geom_boxplot(width=0.1)
+
+violinbynest
+
+violinraided<-ggplot(subset(data,Worker.Queen=="Worker"), aes(x=Raided, y=Venom.Volume))+geom_violin()+ geom_boxplot(width=0.1)
+violinraided
+
+violinraidedforager<-ggplot(subset(workerdata,Behavior.Code=="F"), aes(x=Raided, y=Venom.Volume))+geom_violin()+ geom_boxplot(width=0.1) 
+violinraidedforager
+
+violinraidednurse<-ggplot(subset(workerdata,Behavior.Code=="N"), aes(x=Raided, y=Venom.Volume))+geom_violin()+ geom_boxplot(width=0.1)
+violinraidednurse
+
+violinraidedother<-ggplot(subset(workerdata,Behavior.Code=="X"), aes(x=Raided, y=Venom.Volume))+geom_violin()+ geom_boxplot(width=0.1)
+violinraidedother
+
+
+
+
+
+
+```
+
+## Analyzing venom volume by raid
+
+```{r}
+#The way Raid.Payoff is currently in dataset is that the raid payoff for the raided colony is also in the corresponding unraided matched pair. This does not make sense to include in the model, so this loop goes through each line and says if the colony didn't experience a raid, the payoff was zero.
+for (i in 1:(nrow(workerdata))){
+  if (workerdata$Raided[i]=="N"){workerdata$Raid.Payoff.Total[i]=0}
+}
+workerdata$Final.Pupae.Worker.Ratio<-workerdata$Final.Pupae.Count/workerdata$Final.Worker.Count
+workerdata$Final.Brood.And.Eggs<-workerdata$Final.Brood+workerdata$Final.Egg.Count
+
+model<-lme(Venom.Volume~Raided*Behavior.Code+Day.Frozen+ Final.Brood.And.Eggs+Final.Worker.Count+Final.Pupae.Worker.Ratio+I(Webers.Length.mm^3), data=workerdata, random=list(Collection.Site=~1,Pair.Group=~1,Nest=~1))
+
+summary(model)
+emmeans(model, revpairwise ~ Raided|Behavior.Code)
+joint_tests(model)
+plot(model)
+qqnorm(resid(model))
+hist(resid(model))
+
+```
+
+
+# Visualizing worker data
+
+### Behavior Code
+
+Do nurses and foragers have the same amount of venom? Graph it.
+
+```{r}
+venombybehavior<-ggplot(workerdata,aes(Behavior.Code,Venom.Volume,fill=Raided))+
+  geom_boxplot()+geom_point(alpha=0.4,position = position_jitterdodge(jitter.width=0.3))+
+  xlab("Behavioral Group")+ylab("Venom Volume (nL)")+theme_bw(base_size = 22)+
+scale_x_discrete(labels=c('Foragers', 'Nurses', 'Unclassified'))+scale_fill_brewer(palette = "Set2",labels = c("No", "Yes"))
+
+venombybehavior
+ggsave('venombybehavior.png',plot=venombybehavior,dpi=900,width =35, height = 20, units = "cm",device='png')
+
+
+venombybehavior<-ggplot(workerdata,aes(Behavior.Code,Venom.Volume,fill=Raided))+
+  introdataviz::geom_split_violin(alpha = .4, trim = FALSE) +
+  geom_boxplot(width = .2, alpha = .6, fatten = NULL, show.legend = FALSE) +
+  stat_summary(fun.data = "mean_se", geom = "pointrange", show.legend = F, 
+               position = position_dodge(.175)) +
+  xlab("Behavioral Group")+scale_y_continuous(name = "Venom Volume (nL)",
+                     breaks = seq(0, 3, 0.5), 
+                     limits = c(0, 3.5)) +theme_bw(base_size = 18)+
+scale_x_discrete(labels=c('Foragers', 'Nurses', 'Unclassified'))+scale_fill_brewer(palette = "Dark2", name = "Raided", labels=c("No","Yes")) +
+  theme_minimal()
+venombybehavior
+ggsave('venombybehavior.svg',plot=venombybehavior,dpi=900,width =20, height = 12, units = "cm",device='svg')
+#Getting warning about NAs, but there are not any
+sum(is.na(workerdata$Behavior.Code))
+sum(is.na(workerdata$Venom.Volume))
+sum(is.na(workerdata$Raided))
+
+
+#COUNT THE ANTS
+raided<-subset(workerdata,Raided=="Y")
+unraided<-subset(workerdata,Raided=="N")
+
+nrow(subset(workerdata,Behavior.Code=="N")) #179 nurses
+nrow(subset(raided,Behavior.Code=="N")) #82 raided, 97 unraided
+nrow(subset(unraided,Behavior.Code=="N"))
+nrow(subset(workerdata,Behavior.Code=="F")) #69 foragers
+nrow(subset(raided,Behavior.Code=="F")) #34 raided, 35 unraided
+nrow(subset(unraided,Behavior.Code=="F"))
+nrow(subset(workerdata,Behavior.Code=="X")) #334 unclassified
+nrow(subset(raided,Behavior.Code=="X")) #171 raided, 163 unraided
+nrow(subset(unraided,Behavior.Code=="X"))
+
+
+
+
+
+#foragers
+ggplot(subset(workerdata, Behavior.Code=="F"), aes(x=Webers.Length.mm, y=Venom.Volume, group=Raided, color=Raided)) +geom_point()+geom_smooth(method = "lm", fill = NA)
+
+ggplot(subset(workerdata, Behavior.Code=="N"), aes(x=Webers.Length.mm, y=Venom.Volume, group=Raided, color=Raided)) +geom_point()+geom_smooth(method = "lm", fill = NA)
+```
+
+Graphical depiction of venom volume by weber's length
+```{r}
+#Graphs by Weber's Length
+#overall
+
+weblengthworkers<-ggplot(workerdata, aes(x=Webers.Length.mm, y=Venom.Volume, group=Raided, color=Raided)) +
+    geom_point()+geom_smooth(method = "lm", fill = NA)+theme_bw(base_size = 22)+scale_y_continuous(name="Venom volume (nL)", breaks = seq(0, 3, 0.5))+scale_x_continuous(name = ("Weber's length (mm)"),breaks = seq(0.6,1,0.1))+scale_color_brewer(palette = "Dark2", name = "Raided", labels=c("No","Yes"))+ggtitle("A")+theme(plot.margin = margin(1, 1, 1, 1, "cm"))
+ggsave('weblengthworkers.svg',plot=weblengthworkers,dpi=900,width =25, height = 20, units = "cm",device='svg')
+
+weblengthforagers<-ggplot(subset(workerdata,Behavior.Code=="F"), aes(x=Webers.Length.mm, y=Venom.Volume, group=Raided, color=Raided))+  geom_point()+geom_smooth(method = "lm",se=F)+theme_bw(base_size = 22)+scale_y_continuous(name=expression(paste("Weber's Length (nL)\n",italic("foragers"))), breaks = seq(0, 3, 0.5))+scale_x_continuous(name = "Weber's Length (mm)",breaks = seq(0.6,1,0.1))+scale_color_brewer(palette = "Dark2", name = "Raided", labels=c("No","Yes"))+ggtitle("B")+theme(plot.margin = margin(1, 1, 1, 1, "cm"))
+
+ggsave('weblengthforagers.svg',plot=weblengthforagers,dpi=900,width =25, height = 20, units = "cm",device='svg')
+
+require(gridExtra)
+together<-grid.arrange(weblengthworkers, weblengthforagers, ncol=2)
+ggsave('weblengthboth.svg',plot=together,dpi=900,width =50, height = 20, units = "cm",device='svg')
+```
+
+
+
+This block is for worker venom volume, P1a. First, lets represent graphically.
+
+```{r}
+
+hist(workerdata$Venom.Volume)
+#A bit skewed but mostly pretty normal
+
+
+venombysize = ggplot(data=workerdata,aes(x=Webers.Length.mm, y=Venom.Volume)) + geom_point() +
+  xlab("Weber's Length (mm)")+ylab("Venom Volume")+theme_bw(base_size = 22)+geom_smooth(method=lm , color="red", fill="#69b3a2", se=TRUE)
+#larger ants seem to have more venom, so it's good i'm controlling for that pattern
+
+
+  
+venombydate = ggplot(data=workerdata, aes(Date.Frozen,Venom.Volume)) + 
+geom_point() +
+geom_smooth(method=lm, se=TRUE ) +
+xlab("Date Frozen ")+
+ylab("Venom Volume")+
+theme_bw(base_size = 22)
+
+```
+
+# Modeling Worker data
+
+### by nest
+
+We also need a model to test for overall venom per capita
+
+```{r}
+
+
+
+
+#Create a column with number of ants dissected in the colony
+simplified1<-na.omit(workerdata)
+simplified<-simplified1
+
+simplified<-plyr::ddply(simplified, .(Nest), transform, n.Ants.Dissected = length(Ant))
+simplified1<-subset(simplified,Behavior.Code=="N")
+simplified2<-subset(simplified,Behavior.Code=="F")
+#IMPORTANT: THESE DO NOT WORK IF DPLYR HAS BEEN LOADED BEFORE PLYR. BIG ERROR
+simplified$Webers.Length.cubed<-(simplified$Webers.Length.mm)^3
+
+simplified<- simplified %>% group_by(Nest, n.Ants.Dissected, Final.Worker.Count,Final.Larvae.Count,Final.Pupae.Count,Final.Queen.Count.Alate,Final.Queen.Count.Dealate,Final.Male.Count, Final.Egg.Count, Day.Frozen, Pair.Raid.Payoff.Larvae,Pair.Raid.Payoff.Pupae,Pair.Raid.Payoff.Total,Pair.Group,Raided ) %>%
+  summarize(mean.size.cubed=mean(Webers.Length.cubed), mean_venom_volume=mean(Venom.Volume), SizeVar=var(Webers.Length.cubed),ColonyVar=var(Venom.Volume))
+nrow(simplified) 
+
+
+
+
+
+colonymeanvenommodel<-lme(mean_venom_volume~Raided+mean.size.cubed, data=simplified, random= ~1|Pair.Group)
+summary(colonymeanvenommodel)
+plot(colonymeanvenommodel)
+qqnorm(resid(colonymeanvenommodel))
+hist(resid(colonymeanvenommodel))
+
+#On average, the venom per capita is higher in raided colonies
+jitter <- position_jitter(width = 0.3, height = 0)
+venompercapita<-ggplot(simplified, aes(x=Raided, y=mean_venom_volume,fill=Raided))+ylab("Venom per capita (nL)")+geom_boxplot()+geom_point(position=jitter)+theme_bw(base_size = 22)+scale_fill_brewer(palette = "Set2")+theme(legend.position = "None")+scale_x_discrete(labels = c("No", "Yes"))
+venompercapita
+ggsave('venompercapita2.svg',plot=venompercapita,dpi=900,width =9, height = 20, units = "cm",device='svg')
+
+```
+
+
+

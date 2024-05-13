@@ -1,0 +1,31 @@
+﻿Collected.Date,Divided.Date,Pair.Group,Nest,Collection.Site,Worker.Count,Pupae.Count,Larvae.Count,Queens.Dealate,Queens.Alate,Males.Alate,Eggs,Raided,Pair.Raid.Date.Start,Pair.Raid.Date.End,Pair.Frozen.Date,Raid.Payoff.Pupae,Raid.Payoff.Larvae,Raid.loss,Nest.Switch,Logical.NS,Notes,Final.Worker.Count,Final.Queen.Count.Dealate,Final.Pupae.Count,Final.Larvae.Count,Final.Egg.Count,Final.Queen.Count.Alate,Final.Male.Count
+7/25/22,7/25/22,6,11,Coy Glen,29,8,5,0,0,0,7,N,26-Jul-22,9-Aug-22,8/23/22,NA,NA,NA,NA,NA,,14,0,0,3,21,0,0
+7/25/22,7/25/22,6,12,Coy Glen,29,8,5,0,0,0,7,Y,26-Jul-22,9-Aug-22,8/23/22,2,3,0,Y,T,Raid successful,23,0,0,6,90,0,0
+7/25/22,8/2/22,7,13,Coy Glen,12,30,0,0,12,12,0,N,9-Aug-22,10-Aug-22,8/24/22,NA,NA,NA,N,F,,26,2,0,2,120,5,4
+7/25/22,8/2/22,7,14,Coy Glen,12,30,0,0,12,12,0,Y,9-Aug-22,10-Aug-22,8/24/22,2,0,2,N,F,Raid successful,18,1,0,2,60,3,0
+8/8/22,8/8/22,8,15,SHRT,40,4,10,0,0,0,32,Y,9-Aug-22,10-Aug-22,8/24/22,3,0,0,Y,T,Raid successful,35,9,1,10,100,0,0
+8/8/22,8/8/22,8,16,SHRT,40,4,10,0,0,0,32,N,9-Aug-22,10-Aug-22,8/24/22,NA,NA,NA,N,F,,40,0,0,18,120,0,0
+8/10/22,8/11/22,9,17,Botanic Gardens,43,1,16,2,0,0,23,N,11-Aug-22,14-Aug-22,8/29/22,NA,NA,NA,N,F,,45,2,0,21,45,0,0
+8/10/22,8/11/22,9,18,Botanic Gardens,43,1,16,2,0,0,23,Y,11-Aug-22,14-Aug-22,8/29/22,0,1,0,Y,T,Raid successful,43,2,0,32,45,0,0
+8/10/22,8/12/22,10,19,Botanic Gardens,37,2,11,0,0,0,13,Y,12-Aug-22,19-Aug-22,9/2/22,0,1,0,Y,T,Raid successful,28,0,0,6,50,0,0
+8/10/22,8/12/22,10,20,Botanic Gardens,37,2,11,0,0,0,13,N,12-Aug-22,19-Aug-22,9/2/22,NA,NA,NA,N,F,,35,0,0,11,70,0,0
+8/10/22,8/14/22,11,21,Botanic Gardens,33,2,9,1,0,0,20,Y,14-Aug-22,18-Aug-22,9/2/22,0,0,0,Y,T,Raid witnessed but not successful,31,1,0,27,10,0,0
+8/10/22,8/14/22,11,22,Botanic Gardens,33,2,9,1,0,0,20,N,14-Aug-22,18-Aug-22,9/2/22,NA,NA,NA,N,F,,28,1,0,30,10,0,0
+8/10/22,8/15/22,12,23,Botanic Gardens,15,0,10,0,0,0,0,Y,18-Aug-22,19-Aug-22,9/2/22,0,1,0,Y,T,Raid successful,13,0,1,4,20,0,0
+8/10/22,8/15/22,12,24,Botanic Gardens,15,0,10,0,0,0,0,N,18-Aug-22,19-Aug-22,9/2/22,NA,NA,NA,N,F,,14,0,0,5,30,0,0
+8/16/22,8/18/22,13,25,Lickbrook,15,2,17,0,0,0,0,Y,26-Aug-22,7-Sep-22,9/21/22,1,9,2,Y,T,,11,0,0,10,0,0,0
+8/16/22,8/18/22,13,26,Lickbrook,15,2,17,0,0,0,0,N,26-Aug-22,7-Sep-22,9/21/22,NA,NA,NA,N,F,,15,0,0,15,0,0,0
+8/19/22,8/19/22,15,29,Botanic Gardens,26,1,10,0,0,0,0,Y,19-Aug-22,22-Aug-22,9/6/22,1,0,0,Y,T,Raid successful,20,0,0,2,17,0,0
+8/19/22,8/19/22,15,30,Botanic Gardens,26,2,9,0,0,0,0,N,19-Aug-22,22-Aug-22,9/6/22,NA,NA,NA,N,F,,16,0,2,4,6,0,0
+8/19/22,8/19/22,16,31,Botanic Gardens,7,1,8,1,0,0,1,Y,19-Aug-22,22-Aug-22,9/6/22,0,0,0,Y,T,"Raid possible (switched nests but not witnessed, no increase in brood within parasite nest)",5,1,0,6,2,0,0
+8/19/22,8/19/22,16,32,Botanic Gardens,7,2,7,1,0,0,1,N,19-Aug-22,22-Aug-22,9/6/22,NA,NA,NA,N,F,,9,1,0,11,0,0,0
+8/22/22,8/23/22,17,33,Botanic Gardens,16,2,14,0,0,0,0,N,24-Aug-22,26-Aug-22,9/9/22,NA,NA,NA,N,F,,14,0,0,4,0,0,0
+8/22/22,8/23/22,17,34,Botanic Gardens,16,2,14,0,0,0,0,Y,24-Aug-22,26-Aug-22,9/9/22,1,1,0,N,F,Raid successful. Nest switch was a split! Going to consider it a no to be conservative,12,0,0,4,0,0,0
+8/22/22,8/23/22,18,35,Botanic Gardens,41,0,27,0,0,0,0,Y,23-Aug-22,26-Aug-22,9/9/22,0,0,0,Y,T,Raid witnessed but not successful,36,0,0,21,0,0,0
+8/22/22,8/23/22,18,36,Botanic Gardens,41,0,27,0,0,0,0,N,23-Aug-22,26-Aug-22,9/9/22,NA,NA,NA,N,F,,39,0,0,16,0,0,0
+8/22/22,8/25/22,19,37,Botanic Gardens,45,5,14,0,0,0,0,N,26-Aug-22,27-Aug-22,9/10/22,NA,NA,NA,N,F,,48,0,0,10,0,0,0
+8/22/22,8/25/22,19,38,Botanic Gardens,45,5,14,0,0,0,0,Y,26-Aug-22,27-Aug-22,9/10/22,2,0,1,Y,T,Raid successful,40,0,0,5,0,0,0
+8/28/22,8/29/22,20,39,ICNL,15,1,27,1,0,0,0,Y,29-Aug-22,7-Sep-22,9/21/22,0,2,,Y,T,Raid successful,10,1,0,6,0,0,0
+8/28/22,8/29/22,20,40,ICNL,15,1,27,1,0,0,0,N,29-Aug-22,7-Sep-22,9/21/22,NA,NA,NA,Y,T,,12,1,0,21,0,0,0
+8/28/22,8/29/22,22,43,ICNL,36,3,30,0,0,0,0,N,2-Sep-22,6-Sep-22,9/21/22,NA,NA,NA,Y,T,,34,0,0,26,0,0,0
+8/28/22,8/29/22,22,44,ICNL,36,3,30,0,0,0,0,Y,2-Sep-22,6-Sep-22,9/21/22,2,4,,Y,T,Raid successful,36,0,0,23,0,0,0
