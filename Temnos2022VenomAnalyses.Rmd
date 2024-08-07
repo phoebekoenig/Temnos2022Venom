@@ -1,7 +1,7 @@
 ---
 title: "Temnos2022Analysis"
-author: "Anonymous"
-date: "2023-03-10"
+author: "Phoebe Koenig"
+date: "2023-06-13"
 output: html_document
 ---
 ### Required Packages
@@ -126,9 +126,26 @@ workerdata<-subset(data,Worker.Queen=="Worker")
 queendata<-subset(data,Worker.Queen=="Queen")
 ```
 
+# Does size of ant depend on behavioral caste? 
+To investigate this we test whether behavior code can predict weber's length in our data set. We ran two models, one with all ants in the data set and one with just ants from unraided colonies in case ants died during a raid and more ants in the colony switched castes. Regardless, behavioral caste is not a statistically significant predictor of Weber's length.
+```{r}
+ sizemodel<-lme(Webers.Length.mm~Behavior.Code,data=workerdata, random=~1|Nest)
+summary(sizemodel)
+plot(sizemodel)
+qqnorm(resid(sizemodel))
+hist(resid(sizemodel))
+
+ sizemodelunraidedonly<-lme(Webers.Length.mm~Behavior.Code,data=subset(workerdata,Raided=="N"), random=~1|Nest)
+summary(sizemodelunraidedonly)
+plot(sizemodelunraidedonly)
+qqnorm(resid(sizemodelunraidedonly))
+hist(resid(sizemodelunraidedonly))
+```
+
+
+
 # Venom Volume by raided
 
-## **Visualizing standardized venom by nest and by whether or not nest was raided**
 
 ```{r}
 
@@ -167,12 +184,31 @@ workerdata$Final.Brood.And.Eggs<-workerdata$Final.Brood+workerdata$Final.Egg.Cou
 
 model<-lme(Venom.Volume~Raided*Behavior.Code+Day.Frozen+ Final.Brood.And.Eggs+Final.Worker.Count+Final.Pupae.Worker.Ratio+I(Webers.Length.mm^3), data=workerdata, random=list(Collection.Site=~1,Pair.Group=~1,Nest=~1))
 
+
 summary(model)
 emmeans(model, revpairwise ~ Raided|Behavior.Code)
 joint_tests(model)
 plot(model)
 qqnorm(resid(model))
 hist(resid(model))
+
+
+
+```
+
+
+#Controlling for body size
+What is the correct way to control for body size? This chunk runs the same model run in the previous chunk but controls for weber's length cubed (a measurement of body size) by dividing the explanatory variable by it as opposed to using it as a fixed effect. The results are qualitatively the same and the fit is not as good as in the previous model.
+```{r}
+model2<-lme(Venom.Volume/I(Webers.Length.mm^3)~Raided*Behavior.Code+Day.Frozen+ Final.Brood.And.Eggs+Final.Worker.Count+Final.Pupae.Worker.Ratio, data=workerdata, random=list(Collection.Site=~1,Pair.Group=~1,Nest=~1))
+
+summary(model2)
+emmeans(model2, revpairwise ~ Raided|Behavior.Code)
+joint_tests(model2)
+plot(model2)
+qqnorm(resid(model2))
+hist(resid(model2))
+
 
 ```
 
@@ -190,7 +226,7 @@ venombybehavior<-ggplot(workerdata,aes(Behavior.Code,Venom.Volume,fill=Raided))+
 scale_x_discrete(labels=c('Foragers', 'Nurses', 'Unclassified'))+scale_fill_brewer(palette = "Set2",labels = c("No", "Yes"))
 
 venombybehavior
-ggsave('venombybehavior.png',plot=venombybehavior,dpi=900,width =35, height = 20, units = "cm",device='png')
+ggsave('venombybehavior.svg',plot=venombybehavior,dpi=900,width =35, height = 20, units = "cm",device='svg')
 
 
 venombybehavior<-ggplot(workerdata,aes(Behavior.Code,Venom.Volume,fill=Raided))+
@@ -299,7 +335,7 @@ simplified2<-subset(simplified,Behavior.Code=="F")
 #IMPORTANT: THESE DO NOT WORK IF DPLYR HAS BEEN LOADED BEFORE PLYR. BIG ERROR
 simplified$Webers.Length.cubed<-(simplified$Webers.Length.mm)^3
 
-simplified<- simplified %>% group_by(Nest, n.Ants.Dissected, Final.Worker.Count,Final.Larvae.Count,Final.Pupae.Count,Final.Queen.Count.Alate,Final.Queen.Count.Dealate,Final.Male.Count, Final.Egg.Count, Day.Frozen, Pair.Raid.Payoff.Larvae,Pair.Raid.Payoff.Pupae,Pair.Raid.Payoff.Total,Pair.Group,Raided ) %>%
+simplified<- simplified %>% group_by(Nest, n.Ants.Dissected, Final.Worker.Count,Final.Larvae.Count,Final.Pupae.Count,Final.Queen.Count.Alate,Final.Queen.Count.Dealate,Final.Male.Count, Final.Egg.Count, Day.Frozen,Pair.Group,Raided ) %>%
   summarize(mean.size.cubed=mean(Webers.Length.cubed), mean_venom_volume=mean(Venom.Volume), SizeVar=var(Webers.Length.cubed),ColonyVar=var(Venom.Volume))
 nrow(simplified) 
 
@@ -312,6 +348,14 @@ summary(colonymeanvenommodel)
 plot(colonymeanvenommodel)
 qqnorm(resid(colonymeanvenommodel))
 hist(resid(colonymeanvenommodel))
+
+
+#A reviewer asked if we need mean size for the colony included in the model. Removing it seems to slightly decrease the p value for Raided but does not change our results qualitatively. It does increase the AIC value, though.
+colonymeanvenommodelNOSIZE<-lme(mean_venom_volume~Raided, data=simplified, random= ~1|Pair.Group)
+summary(colonymeanvenommodelNOSIZE)
+plot(colonymeanvenommodelNOSIZE)
+qqnorm(resid(colonymeanvenommodelNOSIZE))
+hist(resid(colonymeanvenommodelNOSIZE))
 
 #On average, the venom per capita is higher in raided colonies
 jitter <- position_jitter(width = 0.3, height = 0)
